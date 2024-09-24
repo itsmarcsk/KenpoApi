@@ -46,8 +46,6 @@ class Competicion(Base):
     fecha = Column(Date, nullable=True)
     lugar = Column(String(100), nullable=True)
 
-    # Relación con la tabla ArtistaMarcial a través de una tabla intermedia si es necesario
-    artistas_marciales = relationship("ArtistaMarcial", secondary="artista_competicion", back_populates="competiciones")
 
 
 class ResultadoCompeticion(Base):

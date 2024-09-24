@@ -1,8 +1,8 @@
-from fastapi import Depends, Request, Response
+from fastapi import Depends, Request, Response, FastAPI
 from sqlalchemy.orm import Session  # Asegúrate de importar desde sqlalchemy.orm
 from fastapi import FastAPI, HTTPException
 from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial
-from BBDD.mysql.database import SessionLocal, engine
+from BBDD.mysql.database import SessionLocal, engine, Base
 from BBDD.mysql.models import ArtistaMarcial
 from BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate
 
@@ -21,6 +21,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@app.get("/artistas")
+def read_artistas(db: Session = Depends(get_db)):
+    # Aquí iría tu lógica para consultar la base de datos
+    return {"artistas": "Aquí irían los datos de los artistas"}
 
 
 @app.get("/artistas-marciales/{dni}", response_model=ArtistaMarcialInDB)

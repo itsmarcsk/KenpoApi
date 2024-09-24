@@ -1,9 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from datetime import date
-from typing import Optional
-from typing import List
+from typing import Optional, List
 
-from BBDD.mysql.models import ResultadoCompeticion
+from BBDD.mysql.models import ResultadoCompeticion  # Asegúrate de que esto esté correctamente importado
 
 
 # TODO ARTISTA MARCIAL
@@ -18,10 +17,10 @@ class ArtistaMarcialBase(BaseModel):
     escuela_id: int
     cinturon: str
     grado: str
-    contrasena: str | None = None  # contrasena es opcional
+    contrasena: Optional[str] = None  # contrasena es opcional
 
     class Config:
-        orm_mode = True  # Cambiado de orm_mode a from_attributes
+        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
 
 
 class ArtistaMarcialCreate(ArtistaMarcialBase):
@@ -37,7 +36,6 @@ class ArtistaMarcialInDB(ArtistaMarcialBase):
 
 
 # TODO ESCUELA
-
 class EscuelaBase(BaseModel):
     nombre: str  # Requerido
     direccion: str  # Requerido
@@ -57,8 +55,6 @@ class EscuelaInDB(EscuelaBase):
 
 
 # TODO COMPETICIONES
-
-
 class CompeticionBase(BaseModel):
     nombre: str  # Requerido
     fecha: date  # Requerido
@@ -72,6 +68,22 @@ class CompeticionCreate(CompeticionBase):
 class CompeticionInDB(CompeticionBase):
     id: int  # ID existente
     resultados: List[ResultadoCompeticion] = []  # Relación opcional
+
+    class Config:
+        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+
+
+class ResultadoCompeticionBase(BaseModel):
+    artista_id: int
+    competicion_id: int
+    puesto: Optional[int] = None  # Campo opcional
+
+    class Config:
+        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+
+
+class ResultadoCompeticionInDB(ResultadoCompeticionBase):
+    id: int  # ID existente
 
     class Config:
         orm_mode = True  # Permite la conversión de objetos ORM a diccionarios

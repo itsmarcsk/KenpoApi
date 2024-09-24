@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from BBDD.mysql.schemas import ArtistaMarcialCreate
 from models import ArtistaMarcial, Escuela, Competicion, ResultadoCompeticion
 from BBDD.mysql import schemas, models
+from tools.PasswordEncryptor import PasswordEncryptor
 
 
 def get_artista_marcial_by_dni(db: Session, dni: str):
@@ -28,11 +29,15 @@ def get_artista_marcial_by_dni(db: Session, dni: str):
         "grado": artista.grado,
     }
 
+
 def artista_marcial_exists(db: Session, dni: str) -> bool:
     return db.query(ArtistaMarcial).filter(ArtistaMarcial.dni == dni).first() is not None
 
 
 def create_artista_marcial(db: Session, artista: ArtistaMarcialCreate):
+    # Hashear la contraseña
+    hashed_password = PasswordEncryptor.hash_password(artista.contrasena)
+
     # Creamos una instancia del modelo ArtistaMarcial
     db_artista = ArtistaMarcial(
         dni=artista.dni,
@@ -45,7 +50,7 @@ def create_artista_marcial(db: Session, artista: ArtistaMarcialCreate):
         escuela_id=artista.escuela_id,
         cinturon=artista.cinturon,
         grado=artista.grado,
-        contrasena=artista.contrasena  # Recuerda que la contraseña debe estar cifrada en un entorno de producción
+        contrasena=hashed_password  # Guardamos la contraseña hasheada
     )
 
     # Añadimos el nuevo artista a la sesión de la base de datos
@@ -54,4 +59,3 @@ def create_artista_marcial(db: Session, artista: ArtistaMarcialCreate):
     db.refresh(db_artista)  # Refrescamos la instancia para obtener los datos actualizados
 
     return db_artista
-
