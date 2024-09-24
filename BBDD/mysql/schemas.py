@@ -10,7 +10,7 @@ class ArtistaMarcialBase(BaseModel):
     dni: str
     nombre: str
     apellidos: str
-    fecha_nacimiento: str
+    fecha_nacimiento: date
     pais: str
     provincia: str
     comunidad_autonoma: str
@@ -71,6 +71,7 @@ class CompeticionInDB(CompeticionBase):
 
     class Config:
         orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+        arbitrary_types_allowed = True  # Permitir tipos arbitrarios aquí también
 
 
 class ResultadoCompeticionBase(BaseModel):
@@ -87,3 +88,4 @@ class ResultadoCompeticionInDB(ResultadoCompeticionBase):
 
     class Config:
         orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+        arbitrary_types_allowed = True  # Permitir tipos arbitrarios para este modelo

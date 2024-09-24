@@ -24,6 +24,9 @@ class ArtistaMarcial(Base):
     escuela = relationship("Escuela", back_populates="artistas_marciales")
     resultados = relationship("ResultadoCompeticion", back_populates="artista")
 
+    class Config:
+        orm_mode = True  # Permite que Pydantic trabaje con modelos ORM
+
 
 class Escuela(Base):
     __tablename__ = 'escuelas'
@@ -46,6 +49,8 @@ class Competicion(Base):
     fecha = Column(Date, nullable=True)
     lugar = Column(String(100), nullable=True)
 
+    # Relación con la tabla ResultadoCompeticion
+    resultados = relationship("ResultadoCompeticion", back_populates="competicion")
 
 
 class ResultadoCompeticion(Base):

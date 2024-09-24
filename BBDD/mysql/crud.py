@@ -1,9 +1,8 @@
 from sqlalchemy.orm import Session
 
 from BBDD.mysql.schemas import ArtistaMarcialCreate
-from models import ArtistaMarcial, Escuela, Competicion, ResultadoCompeticion
-from BBDD.mysql import schemas, models
 from tools.PasswordEncryptor import PasswordEncryptor
+from .models import ArtistaMarcial, Escuela, Competicion, ResultadoCompeticion
 
 
 def get_artista_marcial_by_dni(db: Session, dni: str):

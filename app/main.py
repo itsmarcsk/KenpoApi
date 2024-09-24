@@ -1,6 +1,8 @@
 from fastapi import Depends, Request, Response, FastAPI
 from sqlalchemy.orm import Session  # Asegúrate de importar desde sqlalchemy.orm
 from fastapi import FastAPI, HTTPException
+
+from BBDD.mysql import crud, schemas
 from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial
 from BBDD.mysql.database import SessionLocal, engine, Base
 from BBDD.mysql.models import ArtistaMarcial
@@ -19,6 +21,7 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+        print("Hello World")
     finally:
         db.close()
 
@@ -29,7 +32,7 @@ def read_artistas(db: Session = Depends(get_db)):
     return {"artistas": "Aquí irían los datos de los artistas"}
 
 
-@app.get("/artistas-marciales/{dni}", response_model=ArtistaMarcialInDB)
+@app.get("/artistas-marciales/{dni}", response_model=schemas.ArtistaMarcialInDB)
 def read_artista_marcial(dni: str, db: Session = Depends(get_db)):
     # Llamada al método CRUD para obtener el artista por DNI
     artista = get_artista_marcial_by_dni(db, dni)
