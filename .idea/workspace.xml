@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ac2b76a1-976f-491d-93ba-fb2298d8d96e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/BBDD/mongodb/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BBDD/mysql/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/BBDD/mysql/database.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BBDD/mysql/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/BBDD/mysql/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BBDD/mysql/schemas.py" beforeDir="false" afterPath="$PROJECT_DIR$/BBDD/mysql/schemas.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,6 +53,11 @@
     "git-widget-placeholder": "master"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\DAM\KenpoTFC\KenpoApi\BBDD\mysql" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="database" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="KenpoApi" />
