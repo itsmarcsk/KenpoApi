@@ -8,17 +8,20 @@ from BBDD.mysql.models import ResultadoCompeticion
 
 # TODO ARTISTA MARCIAL
 class ArtistaMarcialBase(BaseModel):
-    dni: str  # Requerido
-    nombre: str  # Requerido
-    apellidos: str  # Requerido
-    fecha_nacimiento: date  # Requerido
-    pais: str  # Requerido
-    provincia: str  # Requerido
-    comunidad_autonoma: str  # Requerido
-    escuela_id: int  # Requerido
-    cinturon: str  # Requerido
-    grado: str  # Requerido
-    contrasena: Optional[str] = Field(None, max_length=255)  # Opcional
+    dni: str
+    nombre: str
+    apellidos: str
+    fecha_nacimiento: str
+    pais: str
+    provincia: str
+    comunidad_autonoma: str
+    escuela_id: int
+    cinturon: str
+    grado: str
+    contrasena: str | None = None  # contrasena es opcional
+
+    class Config:
+        orm_mode = True  # Cambiado de orm_mode a from_attributes
 
 
 class ArtistaMarcialCreate(ArtistaMarcialBase):
