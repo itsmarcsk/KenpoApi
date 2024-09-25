@@ -1,9 +1,12 @@
 from typing import List
 
+import pymongo
 from fastapi import Depends, Request, Response, FastAPI
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, HTTPException
 
+from BBDD.mongodb.database import chats
+from BBDD.mongodb.models import DiccionarioInsertar, Mensaje
 from BBDD.mysql import schemas, crud
 from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
     get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_artista_marcial_by_id, \
@@ -33,6 +36,12 @@ def get_db():
     finally:
         db.close()
 
+
+#
+#
+# TODO MYSQL
+#
+#
 
 # TODO ARTISTAS MARCIALES
 @app.get("/artistas")
@@ -193,3 +202,96 @@ def get_resultados_by_puesto(puesto: int, db: Session = Depends(get_db)):
     if not resultados:
         raise HTTPException(status_code=404, detail="No se encontraron resultados con este puesto")
     return resultados
+
+
+#
+#
+# TODO MONGO DB
+#
+#
+
+
+@app.post("/insertar/")
+def insertar_diccionario(diccionario: DiccionarioInsertar):
+    try:
+        # Convertir el modelo Pydantic a un diccionario
+        data = diccionario.dict()
+
+        # Insertar el diccionario en la colección
+        result = chats.insert_one(data)
+
+        return {"message": "Diccionario insertado", "id": str(result.inserted_id)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/agregar-mensaje/{diccionario_id}")
+def agregar_mensaje(diccionario_id: str, mensaje: Mensaje):
+    try:
+        # Convertir el modelo Pydantic a un diccionario
+        mensaje_dict = mensaje.dict()
+
+        # Actualizar el documento para agregar el nuevo mensaje
+        result = chats.update_one(
+            {"_id": pymongo.ObjectId(diccionario_id)},
+            {"$push": {"mensajes": mensaje_dict}}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Diccionario no encontrado")
+
+        return {"message": "Mensaje agregado correctamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/chat/{diccionario_id}", response_model=DiccionarioInsertar)
+def obtener_chat(diccionario_id: str):
+    try:
+        # Buscar el documento en la colección por su ID
+        diccionario = chats.find_one({"_id": pymongo.ObjectId(diccionario_id)})
+
+        if diccionario is None:
+            raise HTTPException(status_code=404, detail="Diccionario no encontrado")
+
+        # Convertir el ObjectId a string para la respuesta
+        diccionario["_id"] = str(diccionario["_id"])
+
+        return diccionario
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/chat/maestro/{maestro_id}", response_model=List[DiccionarioInsertar])
+def obtener_chat_por_maestro(maestro_id: int):
+    try:
+        # Buscar todos los documentos con el maestro_id dado
+        chatEND = chats.find({"maestro_id": maestro_id})
+
+        # Convertir los resultados a una lista
+        result = []
+        for chat in chatEND:
+            chat["_id"] = str(chat["_id"])  # Convertir ObjectId a string
+            result.append(chat)
+
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Nuevo endpoint para buscar chat por aprendiz_id
+@app.get("/chat/aprendiz/{aprendiz_id}", response_model=List[DiccionarioInsertar])
+def obtener_chat_por_aprendiz(aprendiz_id: int):
+    try:
+        # Buscar todos los documentos con el aprendiz_id dado
+        chatEND = chats.find({"aprendiz_id": aprendiz_id})
+
+        # Convertir los resultados a una lista
+        result = []
+        for chat in chatEND:
+            chat["_id"] = str(chat["_id"])  # Convertir ObjectId a string
+            result.append(chat)
+
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
