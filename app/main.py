@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 import pymongo
@@ -293,5 +294,36 @@ def obtener_chat_por_aprendiz(aprendiz_id: int):
             result.append(chat)
 
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/eliminar-mensaje/{diccionario_id}/{timestamp}")
+def eliminar_mensaje(diccionario_id: str, timestamp: datetime):
+    try:
+        # Actualizar el documento para eliminar el mensaje con el timestamp dado
+        result = chats.update_one(
+            {"_id": pymongo.ObjectId(diccionario_id)},
+            {"$pull": {"mensajes": {"timestamp": timestamp}}}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Diccionario no encontrado o mensaje no encontrado")
+
+        return {"message": "Mensaje eliminado correctamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/eliminar-chat/{diccionario_id}")
+def eliminar_chat(diccionario_id: str):
+    try:
+        # Eliminar el documento del chat correspondiente al diccionario_id
+        result = chats.delete_one({"_id": pymongo.ObjectId(diccionario_id)})
+
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Chat no encontrado")
+
+        return {"message": "Chat eliminado correctamente"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

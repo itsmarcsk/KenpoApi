@@ -5,6 +5,7 @@ from typing import List
 from pydantic import BaseModel
 
 
+# TODO CHAT
 class Mensaje(BaseModel):
     autor_id: int
     contenido: str
