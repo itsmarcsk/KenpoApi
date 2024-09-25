@@ -1,5 +1,6 @@
 import bcrypt
 
+
 class PasswordEncryptor:
     @staticmethod
     def hash_password(password: str) -> str:

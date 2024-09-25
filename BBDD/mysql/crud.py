@@ -108,6 +108,7 @@ def update_password_by_dni(db: Session, dni: str, new_password: str):
 
     return artista
 
+
 # TODO ESCUELA
 
 def get_all_escuelas(db: Session):
