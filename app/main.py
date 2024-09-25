@@ -7,12 +7,15 @@ from fastapi import FastAPI, HTTPException
 from BBDD.mysql import crud, schemas
 from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
     get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_artista_marcial_by_id, \
-    delete_escuela_by_id
+    delete_escuela_by_id, update_password_by_dni
 from BBDD.mysql.database import SessionLocal, engine, Base
 from BBDD.mysql.models import ArtistaMarcial
 from BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate, EscuelaInDB, EscuelaCreate
 
 app = FastAPI()
+
+# Crear las tablas automáticamente
+Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")
@@ -80,6 +83,14 @@ def delete_artista_marcial_dni(dni: str, db: Session = Depends(get_db)):
 @app.delete("/artistas-marciales/id/{artista_id}")
 def delete_artista_marcial_id(artista_id: int, db: Session = Depends(get_db)):
     return delete_artista_marcial_by_id(db, artista_id)
+
+
+@app.put("/artistas-marciales/{dni}/contrasena")
+def update_artista_contrasena(dni: str, new_password: str, db: Session = Depends(get_db)):
+    # Llamamos al método CRUD para actualizar la contraseña
+    artista_actualizado = update_password_by_dni(db, dni, new_password)
+
+    return {"message": "Contraseña actualizada correctamente", "artista": artista_actualizado}
 
 
 # TODO ESCUELAS

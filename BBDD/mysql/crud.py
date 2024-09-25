@@ -90,6 +90,24 @@ def delete_artista_marcial_by_id(db: Session, artista_id: int):
     return {"detail": "Artista marcial eliminado exitosamente"}
 
 
+def update_password_by_dni(db: Session, dni: str, new_password: str):
+    # Buscar el artista por su DNI
+    artista = db.query(ArtistaMarcial).filter(ArtistaMarcial.dni == dni).first()
+
+    if not artista:
+        raise HTTPException(status_code=404, detail="Artista marcial no encontrado")
+
+    # Encriptar la nueva contraseña
+    hashed_password = PasswordEncryptor.hash_password(new_password)
+
+    # Actualizar la contraseña
+    artista.contrasena = hashed_password
+
+    db.commit()  # Confirmamos los cambios
+    db.refresh(artista)  # Refrescamos la instancia para obtener los datos actualizados
+
+    return artista
+
 # TODO ESCUELA
 
 def get_all_escuelas(db: Session):
