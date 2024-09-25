@@ -1,9 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from BBDD.mysql.schemas import ArtistaMarcialCreate, EscuelaCreate
+from BBDD.mysql.schemas import ArtistaMarcialCreate, EscuelaCreate, CompeticionCreate
 from tools.PasswordEncryptor import PasswordEncryptor
-from .models import ArtistaMarcial, Escuela
+from . import models, schemas
+from .models import ArtistaMarcial, Escuela, Competicion
 
 
 # TODO ARTISTAS MARCIALES
@@ -138,3 +139,80 @@ def delete_escuela_by_id(db: Session, escuela_id: int):
     db.delete(escuela)
     db.commit()
     return {"detail": "Escuela eliminada exitosamente"}
+
+
+# TODO COMPETICIONES
+
+# Obtener todas las competiciones
+def get_all_competiciones(db: Session):
+    return db.query(Competicion).all()
+
+
+# Obtener una competición por ID
+def get_competicion_by_id(db: Session, competicion_id: int):
+    competicion = db.query(Competicion).filter(Competicion.id == competicion_id).first()
+    if not competicion:
+        raise HTTPException(status_code=404, detail="Competición no encontrada")
+    return competicion
+
+
+# Crear una nueva competición
+def create_competicion(db: Session, competicion: CompeticionCreate):
+    db_competicion = Competicion(
+        nombre=competicion.nombre,
+        fecha=competicion.fecha,
+        lugar=competicion.lugar
+    )
+    db.add(db_competicion)
+    db.commit()  # Confirmar la transacción
+    db.refresh(db_competicion)  # Refrescar la instancia para obtener los datos actualizados
+    return db_competicion
+
+
+# Eliminar una competición por ID
+def delete_competicion_by_id(db: Session, competicion_id: int):
+    competicion = db.query(Competicion).filter(Competicion.id == competicion_id).first()
+    if not competicion:
+        raise HTTPException(status_code=404, detail="Competición no encontrada")
+    db.delete(competicion)
+    db.commit()  # Confirmar la eliminación
+    return {"detail": "Competición eliminada exitosamente"}
+
+
+
+#TODO RESULTADOS
+def create_resultado(db: Session, resultado: schemas.ResultadosCreate):
+    db_resultado = models.Resultados(
+        artista_id=resultado.artista_id,
+        competicion_id=resultado.competicion_id,
+        puesto=resultado.puesto
+    )
+    db.add(db_resultado)
+    db.commit()
+    db.refresh(db_resultado)
+    return db_resultado
+
+
+def delete_resultado(db: Session, resultado_id: int):
+    db_resultado = db.query(models.Resultados).filter(models.Resultados.id == resultado_id).first()
+    if db_resultado is None:
+        raise HTTPException(status_code=404, detail="Resultado no encontrado")
+    db.delete(db_resultado)
+    db.commit()
+    return {"detail": "Resultado eliminado exitosamente"}
+
+def get_all_resultados(db: Session):
+    return db.query(models.Resultados).all()
+
+
+def get_resultados_by_artista(db: Session, artista_id: int):
+    return db.query(models.Resultados).filter(models.Resultados.artista_id == artista_id).all()
+
+
+def get_resultados_by_competicion(db: Session, competicion_id: int):
+    return db.query(models.Resultados).filter(
+        models.Resultados.competicion_id == competicion_id).all()
+
+
+def get_resultados_by_puesto(db: Session, puesto: int):
+    return db.query(models.Resultados).filter(models.Resultados.puesto == puesto).all()
