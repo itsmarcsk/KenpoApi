@@ -1,33 +1,27 @@
 from pydantic import BaseModel
 from datetime import date
-from typing import Optional, List
-
-from BBDD.mysql.models import ResultadoCompeticion  # Asegúrate de que esto esté correctamente importado
+from typing import Optional
 
 
 # TODO ARTISTA MARCIAL
 class ArtistaMarcialBase(BaseModel):
-    dni: str
-    nombre: str
-    apellidos: str
-    fecha_nacimiento: date
-    pais: str
-    provincia: str
-    comunidad_autonoma: str
-    escuela_id: int
-    cinturon: str
-    grado: str
-    contrasena: Optional[str] = None  # contrasena es opcional
-
-    class Config:
-        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+    dni: str  # Requerido
+    nombre: str  # Requerido
+    apellidos: str  # Requerido
+    fecha_nacimiento: date  # Requerido
+    pais: str  # Requerido
+    provincia: str  # Requerido
+    comunidad_autonoma: str  # Requerido
+    escuela_id: int  # Requerido
+    cinturon: str  # Requerido
+    grado: str  # Requerido
+    contrasena: Optional[str] = None  # Opcional
 
 
 class ArtistaMarcialCreate(ArtistaMarcialBase):
-    pass  # Todos los campos ya son requeridos
+    pass  # Todos los campos son requeridos al crear un nuevo artista marcial
 
 
-# Clase para la representación de Artistas Marciales en la base de datos
 class ArtistaMarcialInDB(ArtistaMarcialBase):
     id: int  # ID existente
 
@@ -62,30 +56,29 @@ class CompeticionBase(BaseModel):
 
 
 class CompeticionCreate(CompeticionBase):
-    pass  # Todos los campos son requeridos al crear una nueva competición
+    pass  # Todos los campos son requeridos al crear una nueva competicion
 
 
 class CompeticionInDB(CompeticionBase):
     id: int  # ID existente
-    resultados: List[ResultadoCompeticion] = []  # Relación opcional
-
-    class Config:
-        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
-        arbitrary_types_allowed = True  # Permitir tipos arbitrarios aquí también
-
-
-class ResultadoCompeticionBase(BaseModel):
-    artista_id: int
-    competicion_id: int
-    puesto: Optional[int] = None  # Campo opcional
 
     class Config:
         orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
 
 
-class ResultadoCompeticionInDB(ResultadoCompeticionBase):
-    id: int  # ID existente
+# TODO  RESULTADO COMPETICIONES
+class ResultadosBase(BaseModel):
+    artista_id: int  # Requerido
+    competicion_id: int  # Requerido
+    puesto: int  # Requerido
+
+
+class ResultadosCreate(ResultadosBase):
+    pass  # Todos los campos son requeridos al crear un nuevo resultado
+
+
+class ResultadosInDB(ResultadosBase):
+    id: int  # ID existente, asumiendo que el modelo Resultados tiene un campo id
 
     class Config:
         orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
-        arbitrary_types_allowed = True  # Permitir tipos arbitrarios para este modelo
