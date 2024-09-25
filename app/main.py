@@ -1,12 +1,16 @@
+from typing import List
+
 from fastapi import Depends, Request, Response, FastAPI
 from sqlalchemy.orm import Session  # Asegúrate de importar desde sqlalchemy.orm
 from fastapi import FastAPI, HTTPException
 
 from BBDD.mysql import crud, schemas
-from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial
+from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
+    get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_artista_marcial_by_id, \
+    delete_escuela_by_id
 from BBDD.mysql.database import SessionLocal, engine, Base
 from BBDD.mysql.models import ArtistaMarcial
-from BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate
+from BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate, EscuelaInDB, EscuelaCreate
 
 app = FastAPI()
 
@@ -26,6 +30,7 @@ def get_db():
         db.close()
 
 
+# TODO ARTISTAS MARCIALES
 @app.get("/artistas")
 def read_artistas(db: Session = Depends(get_db)):
     # Aquí iría tu lógica para consultar la base de datos
@@ -63,3 +68,53 @@ def create_artista(artista: ArtistaMarcialCreate, db: Session = Depends(get_db))
     nuevo_artista = create_artista_marcial(db, artista)
 
     return nuevo_artista
+
+
+# Eliminar artista por DNI
+@app.delete("/artistas-marciales/dni/{dni}")
+def delete_artista_marcial_dni(dni: str, db: Session = Depends(get_db)):
+    return delete_artista_marcial_by_dni(db, dni)
+
+
+# Eliminar artista por ID
+@app.delete("/artistas-marciales/id/{artista_id}")
+def delete_artista_marcial_id(artista_id: int, db: Session = Depends(get_db)):
+    return delete_artista_marcial_by_id(db, artista_id)
+
+
+# TODO ESCUELAS
+
+@app.get("/escuelas", response_model=List[EscuelaInDB])
+def read_escuelas(db: Session = Depends(get_db)):
+    # Llamar al método CRUD para obtener todas las escuelas
+    escuelas = get_all_escuelas(db)
+    if not escuelas:
+        raise HTTPException(status_code=404, detail="No se encontraron escuelas")
+
+    return escuelas
+
+
+@app.get("/escuelas/{escuela_id}", response_model=EscuelaInDB)
+def read_escuela(escuela_id: int, db: Session = Depends(get_db)):
+    # Llamar al método CRUD para obtener la escuela por su ID
+    escuela = get_escuela_by_id(db, escuela_id)
+
+    # Si la escuela no existe, lanzar un error 404
+    if escuela is None:
+        raise HTTPException(status_code=404, detail="Escuela no encontrada")
+
+    return escuela
+
+
+@app.post("/escuelas/", response_model=EscuelaInDB)
+def create_new_escuela(escuela: EscuelaCreate, db: Session = Depends(get_db)):
+    # Llamar al método CRUD para crear la escuela
+    nueva_escuela = create_escuela(db, escuela)
+
+    return nueva_escuela
+
+
+# Eliminar escuela por ID
+@app.delete("/escuelas/{escuela_id}")
+def delete_escuela(escuela_id: int, db: Session = Depends(get_db)):
+    return delete_escuela_by_id(db, escuela_id)
