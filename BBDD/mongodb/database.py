@@ -2,7 +2,6 @@ import pymongo
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 
-
 # TODO bases de datos
 chatdb = myclient["chats"]
 tecnicas_katasdb = myclient["tecnicas_katasdb"]
@@ -20,5 +19,4 @@ eventos = eventosdb["eventos"]
 tienda_material = tienda_materialdb["tienda_material"]
 cesta = tienda_materialdb["cesta"]
 
-#TODO metodo de prueba para ver si se conecta print(myclient.list_database_names())
-
+# TODO metodo de prueba para ver si se conecta print(myclient.list_database_names())

@@ -6,8 +6,8 @@ from fastapi import Depends, Request, Response, FastAPI
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, HTTPException
 
-from BBDD.mongodb.database import chats
-from BBDD.mongodb.models import DiccionarioInsertar, Mensaje
+from BBDD.mongodb.database import chats, cesta
+from BBDD.mongodb.schema import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem
 from BBDD.mysql import schemas, crud
 from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
     get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_artista_marcial_by_id, \
@@ -87,11 +87,11 @@ def delete_artista_marcial_dni(dni: str, db: Session = Depends(get_db)):
     return delete_artista_marcial_by_dni(db, dni)
 
 
-# Eliminar artista por ID
-@app.delete("/artistas-marciales/id/{artista_id}")
-def delete_artista_marcial_id(artista_id: int, db: Session = Depends(get_db)):
-    # Eliminar: Eliminar un artista marcial por su ID
-    return delete_artista_marcial_by_id(db, artista_id)
+# # Eliminar artista por ID
+# @app.delete("/artistas-marciales/id/{artista_id}")
+# def delete_artista_marcial_id(artista_id: int, db: Session = Depends(get_db)):
+#     # Eliminar: Eliminar un artista marcial por su ID
+#     return delete_artista_marcial_by_id(db, artista_id)
 
 
 @app.put("/artistas-marciales/{dni}/contrasena")
@@ -327,3 +327,121 @@ def eliminar_chat(diccionario_id: str):
         return {"message": "Chat eliminado correctamente"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# TODO CESTA
+
+@app.get("/cesta/", response_model=List[dict])
+def get_all_cesta_items():
+    try:
+        # Obtener todos los documentos de la colección 'cesta'
+        items = list(cesta.find({}, {"_id": 0}))  # Excluyendo el _id de la respuesta
+
+        if not items:
+            raise HTTPException(status_code=404, detail="No se encontraron elementos en la colección")
+
+        return items
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener los datos: {e}")
+
+
+@app.get("/cesta/{artista_marcial_id}")
+def get_material_by_artista_marcial(artista_marcial_id: int):
+    # Busca el documento que coincide con el artista_marcial_id
+    resultado = cesta.find_one({"artista_marcial_id": artista_marcial_id})
+
+    if resultado is None:
+        raise HTTPException(status_code=404, detail="Artista marcial no encontrado en la cesta")
+
+    # Retorna la lista de material_id si se encuentra
+    return {"artista_marcial_id": artista_marcial_id, "material_id": resultado.get("material_id", [])}
+
+
+# Endpoint para añadir un nuevo item a la cesta
+@app.post("/cesta/")
+def add_to_cesta(item: CestaItem):
+    try:
+        # Convertir el item a un diccionario para MongoDB
+        item_dict = item.dict()
+        result = cesta.insert_one(item_dict)
+        return {"message": "Item añadido a la cesta", "id": str(result.inserted_id)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al añadir el item: {e}")
+
+
+@app.put("/cesta/{artista_marcial_id}/add-material")
+def add_material_to_cesta(artista_marcial_id: int, material_item: MaterialItem):
+    try:
+        # Buscar el documento con el artista_marcial_id
+        result = cesta.update_one(
+            {"artista_marcial_id": artista_marcial_id},  # Filtro para encontrar el documento
+            {"$addToSet": {"material_id": material_item.material_id}}  # Añadir material_id sin duplicados
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Artista marcial no encontrado en la cesta")
+
+        return {"message": "Material añadido correctamente al artista marcial"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al añadir el material: {e}")
+
+
+@app.delete("/cesta/{artista_marcial_id}")
+def delete_material_by_artista_marcial(artista_marcial_id: int):
+    # Elimina todos los documentos que coinciden con el artista_marcial_id
+    resultado = cesta.delete_many({"artista_marcial_id": artista_marcial_id})
+
+    if resultado.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No se encontró ningún registro para el artista marcial")
+
+    return {
+        "message": f"Se eliminaron {resultado.deleted_count} registros para el artista_marcial_id {artista_marcial_id}"}
+
+
+@app.delete("/cesta/material/{artista_marcial_id}")
+def delete_material_list_by_artista_marcial(artista_marcial_id: int):
+    # Elimina la lista de material_id para el artista_marcial_id dado
+    resultado = cesta.update_one(
+        {"artista_marcial_id": artista_marcial_id},  # Filtro para encontrar el documento
+        {"$unset": {"material_id": ""}}  # Operador $unset para eliminar el campo material_id
+    )
+
+    if resultado.matched_count == 0:
+        raise HTTPException(status_code=404, detail="No se encontró ningún registro para el artista marcial")
+
+    return {"message": f"Se eliminó la lista de material_id para el artista_marcial_id {artista_marcial_id}"}
+
+
+@app.delete("/cesta/material/{artista_marcial_id}/{material_id}")
+def delete_material_from_list(artista_marcial_id: int, material_id: int):
+    # Eliminar un material_id específico de la lista para un artista_marcial_id dado
+    resultado = cesta.update_one(
+        {"artista_marcial_id": artista_marcial_id},  # Filtro para encontrar el documento
+        {"$pull": {"material_id": material_id}}  # Operador $pull para eliminar el elemento de la lista
+    )
+
+    if resultado.matched_count == 0:
+        raise HTTPException(status_code=404, detail="No se encontró ningún registro para el artista marcial")
+
+    if resultado.modified_count == 0:
+        raise HTTPException(status_code=400, detail=f"No se encontró el material_id {material_id} en la lista")
+
+    return {
+        "message": f"El material_id {material_id} fue eliminado de la lista para el artista_marcial_id {artista_marcial_id}"}
+
+
+@app.delete("/cesta/material/{material_id}")
+def delete_material_from_all(material_id: int):
+    # Eliminar un material_id específico de todas las listas en la colección
+    resultado = cesta.update_many(
+        {},  # Sin filtro, para afectar todos los documentos
+        {"$pull": {"material_id": material_id}}  # Operador $pull para eliminar el material_id de todas las listas
+    )
+
+    if resultado.matched_count == 0:
+        raise HTTPException(status_code=404, detail="No se encontraron registros con material_id en las listas")
+
+    if resultado.modified_count == 0:
+        raise HTTPException(status_code=400, detail=f"No se encontró el material_id {material_id} en ninguna lista")
+
+    return {"message": f"El material_id {material_id} fue eliminado de todas las listas"}

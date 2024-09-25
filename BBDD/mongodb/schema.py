@@ -17,3 +17,12 @@ class DiccionarioInsertar(BaseModel):
     maestro_id: int
     aprendiz_id: int
     mensajes: List[Mensaje]
+
+
+class CestaItem(BaseModel):
+    artista_marcial_id: int
+    material_id: List[int]  # Lista de IDs de materiales
+
+
+class MaterialItem(BaseModel):
+    material_id: int  # El nuevo material que se va a añadir

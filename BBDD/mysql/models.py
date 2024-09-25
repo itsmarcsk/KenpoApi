@@ -8,7 +8,7 @@ from BBDD.mysql.database import Base
 class ArtistaMarcial(Base):
     __tablename__ = 'artistas_marciales'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)  # ID existente
+    # id = Column(Integer, primary_key=True, autoincrement=True)  # ID existente
     dni = Column(String(9), nullable=False, unique=True)  # Nuevo campo dni
     nombre = Column(String(255), nullable=False)  # Campo requerido
     apellidos = Column(String(255), nullable=False)  # Campo requerido
