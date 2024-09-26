@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from fastapi import FastAPI, HTTPException
 
 from BBDD.mongodb.database import chats, cesta
-from BBDD.mongodb.schema import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem
+from BBDD.mongodb.schemas import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem
 from BBDD.mysql import schemas, crud
 from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
     get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_artista_marcial_by_id, \
