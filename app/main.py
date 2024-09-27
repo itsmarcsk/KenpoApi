@@ -5,19 +5,19 @@ from typing import List
 import gridfs
 import pymongo
 from bson import ObjectId
-from fastapi import Depends, Request, Response, FastAPI, UploadFile, File
+from fastapi import Depends, UploadFile, File
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 
-from BBDD.mongodb.database import chats, cesta, myclient, eventos, tienda_materialdb, material_collection, \
+from BBDD.mongodb.database import chats, tienda_materialdb, material_collection, cesta, myclient, eventos, \
     tecnicas_katasdb, katas, tecnicas
 from BBDD.mongodb.schemas import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem, EventoInDB, EventoCreate, \
     MaterialInDB, MaterialCreate, KataInDB, TecnicaResponse
 from BBDD.mysql import schemas, crud
+
 from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
-    get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_artista_marcial_by_id, \
-    delete_escuela_by_id, update_password_by_dni
+    get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_escuela_by_id, update_password_by_dni
 from BBDD.mysql.database import SessionLocal, engine, Base
 from BBDD.mysql.models import ArtistaMarcial
 from BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate, EscuelaInDB, EscuelaCreate

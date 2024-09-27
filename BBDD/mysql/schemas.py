@@ -26,7 +26,7 @@ class ArtistaMarcialInDB(ArtistaMarcialBase):
     id: int  # ID existente
 
     class Config:
-        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+        from_attributes = True  # Permite la conversión de objetos ORM a diccionarios
 
 
 # TODO ESCUELA
@@ -45,7 +45,7 @@ class EscuelaInDB(EscuelaBase):
     id: int  # ID existente
 
     class Config:
-        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+        from_attributes = True  # Permite la conversión de objetos ORM a diccionarios
 
 
 # TODO COMPETICIONES
@@ -63,7 +63,7 @@ class CompeticionInDB(CompeticionBase):
     id: int  # ID existente
 
     class Config:
-        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+        from_attributes = True  # Permite la conversión de objetos ORM a diccionarios
 
 
 # TODO  RESULTADO COMPETICIONES
@@ -81,4 +81,4 @@ class ResultadosInDB(ResultadosBase):
     id: int  # ID existente, asumiendo que el modelo Resultados tiene un campo id
 
     class Config:
-        orm_mode = True  # Permite la conversión de objetos ORM a diccionarios
+        from_attributes = True  # Permite la conversión de objetos ORM a diccionarios

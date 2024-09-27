@@ -44,7 +44,7 @@ class EventoInDB(EventoBase):
     id_imagen: str  # ID de la imagen almacenada en GridFS
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MaterialBase(BaseModel):
