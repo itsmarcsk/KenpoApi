@@ -1,13 +1,19 @@
 from datetime import datetime
+from io import BytesIO
 from typing import List
 
+import gridfs
 import pymongo
-from fastapi import Depends, Request, Response, FastAPI
+from bson import ObjectId
+from fastapi import Depends, Request, Response, FastAPI, UploadFile, File
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 
-from BBDD.mongodb.database import chats, cesta
-from BBDD.mongodb.schemas import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem
+from BBDD.mongodb.database import chats, cesta, myclient, eventos, tienda_materialdb, material_collection, \
+    tecnicas_katasdb, katas, tecnicas
+from BBDD.mongodb.schemas import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem, EventoInDB, EventoCreate, \
+    MaterialInDB, MaterialCreate, KataInDB, TecnicaResponse
 from BBDD.mysql import schemas, crud
 from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
     get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_artista_marcial_by_id, \
@@ -211,8 +217,8 @@ def get_resultados_by_puesto(puesto: int, db: Session = Depends(get_db)):
 #
 #
 
-
-@app.post("/insertar/")
+# TODO CHAT
+@app.post("/chat/insertar/")
 def insertar_diccionario(diccionario: DiccionarioInsertar):
     try:
         # Convertir el modelo Pydantic a un diccionario
@@ -226,7 +232,7 @@ def insertar_diccionario(diccionario: DiccionarioInsertar):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/agregar-mensaje/{diccionario_id}")
+@app.post("/chat/agregar-mensaje/{diccionario_id}")
 def agregar_mensaje(diccionario_id: str, mensaje: Mensaje):
     try:
         # Convertir el modelo Pydantic a un diccionario
@@ -298,7 +304,7 @@ def obtener_chat_por_aprendiz(aprendiz_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.delete("/eliminar-mensaje/{diccionario_id}/{timestamp}")
+@app.delete("/chat/eliminar-mensaje/{diccionario_id}/{timestamp}")
 def eliminar_mensaje(diccionario_id: str, timestamp: datetime):
     try:
         # Actualizar el documento para eliminar el mensaje con el timestamp dado
@@ -315,7 +321,7 @@ def eliminar_mensaje(diccionario_id: str, timestamp: datetime):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.delete("/eliminar-chat/{diccionario_id}")
+@app.delete("/chat/eliminar-chat/{diccionario_id}")
 def eliminar_chat(diccionario_id: str):
     try:
         # Eliminar el documento del chat correspondiente al diccionario_id
@@ -327,6 +333,77 @@ def eliminar_chat(diccionario_id: str):
         return {"message": "Chat eliminado correctamente"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# TODO MATERIAL
+
+fs_material = gridfs.GridFS(tienda_materialdb)
+
+
+# Endpoint para subir material con imagen obligatoria
+@app.post("/material/", response_model=MaterialInDB)
+async def create_material(material: MaterialCreate, file: UploadFile = File(...)):
+    # Guardar la imagen en GridFS
+    image_id = fs_material.put(file.file, filename=file.filename, content_type=file.content_type)
+
+    # Crear el documento de material
+    material_data = material.dict()
+    material_data["id_imagen"] = str(image_id)  # Imagen obligatoria, siempre presente
+
+    inserted = material_collection.insert_one(material_data)
+
+    material_data["id"] = str(inserted.inserted_id)
+    return material_data
+
+
+# Endpoint para obtener un material por su ID
+@app.get("/material/{material_id}", response_model=MaterialInDB)
+async def get_material(material_id: str):
+    material = material_collection.find_one({"_id": ObjectId(material_id)})
+    if not material:
+        raise HTTPException(status_code=404, detail="Material no encontrado")
+
+    material["id"] = str(material["_id"])
+    return material
+
+
+# Endpoint para descargar la imagen de un material
+@app.get("/material/{material_id}/imagen")
+async def get_material_image(material_id: str):
+    material = material_collection.find_one({"_id": ObjectId(material_id)})
+    if not material or not material.get("id_imagen"):
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
+
+    image_id = material["id_imagen"]
+    grid_out = fs_material.get(ObjectId(image_id))
+
+    return StreamingResponse(grid_out, media_type=grid_out.content_type)
+
+
+# Endpoint para listar todos los materiales
+@app.get("/material/", response_model=list[MaterialInDB])
+async def list_materials():
+    materials = []
+    for material in material_collection.find():
+        material["id"] = str(material["_id"])
+        materials.append(material)
+
+    return materials
+
+
+# Endpoint para eliminar un material junto con su imagen
+@app.delete("/material/{material_id}")
+async def delete_material(material_id: str):
+    material = material_collection.find_one({"_id": ObjectId(material_id)})
+    if not material:
+        raise HTTPException(status_code=404, detail="Material no encontrado")
+
+    # Eliminar imagen de GridFS
+    fs_material.delete(ObjectId(material["id_imagen"]))
+
+    # Eliminar material de la colección
+    material_collection.delete_one({"_id": ObjectId(material_id)})
+    return {"message": "Material eliminado correctamente"}
 
 
 # TODO CESTA
@@ -445,3 +522,207 @@ def delete_material_from_all(material_id: int):
         raise HTTPException(status_code=400, detail=f"No se encontró el material_id {material_id} en ninguna lista")
 
     return {"message": f"El material_id {material_id} fue eliminado de todas las listas"}
+
+
+# TODO EVENTOS
+
+fs_eventos = gridfs.GridFS(myclient["eventosdb"])
+
+
+def get_eventos_collection():
+    return eventos
+
+
+# Crear un nuevo evento con imagen
+@app.post("/eventos/", response_model=EventoInDB)
+async def create_evento(evento: EventoCreate, file: UploadFile = File(...), db=Depends(get_eventos_collection)):
+    # Guardar la imagen en GridFS
+    id_imagen = fs_eventos.put(file.file, filename=file.filename, content_type=file.content_type)
+
+    # Crear el evento con la referencia a la imagen
+    nuevo_evento = {
+        "titulo": evento.titulo,
+        "descripcion": evento.descripcion,
+        "fecha": evento.fecha,
+        "lugar": evento.lugar,
+        "id_imagen": str(id_imagen)  # Convertir ObjectId a string para almacenarlo en MongoDB
+    }
+
+    result = db.insert_one(nuevo_evento)
+
+    # Devolver el evento con su ID
+    return EventoInDB(id=str(result.inserted_id), **nuevo_evento)
+
+
+# Obtener todos los eventos
+@app.get("/eventos/", response_model=List[EventoInDB])
+async def get_eventos(db=Depends(get_eventos_collection)):
+    eventos_list = []
+
+    # Convertir cada documento de MongoDB a EventoInDB
+    for evento in db.find():
+        evento_data = EventoInDB(
+            id=str(evento["_id"]),
+            titulo=evento["titulo"],
+            descripcion=evento["descripcion"],
+            fecha=evento["fecha"],
+            lugar=evento["lugar"],
+            id_imagen=evento["id_imagen"]
+        )
+        eventos_list.append(evento_data)
+
+    return eventos_list
+
+
+# Obtener un evento por su ID
+@app.get("/eventos/{evento_id}", response_model=EventoInDB)
+async def get_evento(evento_id: str, db=Depends(get_eventos_collection)):
+    evento = db.find_one({"_id": ObjectId(evento_id)})
+    if evento is None:
+        raise HTTPException(status_code=404, detail="Evento no encontrado")
+
+    return EventoInDB(
+        id=str(evento["_id"]),
+        titulo=evento["titulo"],
+        descripcion=evento["descripcion"],
+        fecha=evento["fecha"],
+        lugar=evento["lugar"],
+        id_imagen=evento["id_imagen"]
+    )
+
+
+# Obtener una imagen por su ID
+@app.get("/eventos/imagen/{imagen_id}")
+async def get_imagen(imagen_id: str):
+    try:
+        # Obtener la imagen de GridFS
+        file = fs_eventos.get(ObjectId(imagen_id))
+        return StreamingResponse(file, media_type=file.content_type)
+    except:
+        raise HTTPException(status_code=404, detail="Imagen no encontrada")
+
+
+# Eliminar un evento por su ID
+@app.delete("/eventos/{evento_id}")
+async def delete_evento(evento_id: str, db=Depends(get_eventos_collection)):
+    evento = db.find_one({"_id": ObjectId(evento_id)})
+    if evento is None:
+        raise HTTPException(status_code=404, detail="Evento no encontrado")
+
+    # Eliminar la imagen de Gridfs
+    fs_eventos.delete(ObjectId(evento["id_imagen"]))
+
+    # Eliminar el evento de la colección
+    db.delete_one({"_id": ObjectId(evento_id)})
+
+    return {"message": "Evento eliminado correctamente"}
+
+
+# TODO KATAS
+
+fs_katas = gridfs.GridFS(tecnicas_katasdb)
+
+
+# Crear una nueva kata con video
+@app.post("/katas/", response_model=KataInDB)
+async def create_kata(nombre: str, video: UploadFile = File(...)):
+    # Almacenar el video en GridFS
+    video_id = fs_katas.put(video.file, filename=video.filename)
+
+    # Crear un nuevo documento en la colección `katas`
+    kata_data = {"nombre": nombre, "id_video": str(video_id)}
+    katas.insert_one(kata_data)
+
+    return {"nombre": nombre, "id_video": str(video_id)}
+
+
+# Obtener una kata por su ID
+@app.get("/katas/{kata_id}", response_model=KataInDB)
+async def get_kata(kata_id: str):
+    kata = katas.find_one({"_id": ObjectId(kata_id)})
+
+    if kata is None:
+        raise HTTPException(status_code=404, detail="Kata no encontrada")
+
+    return {"nombre": kata["nombre"], "id_video": kata["id_video"]}
+
+
+# Descargar el video de una kata por su ID de video
+@app.get("/katas/video/{video_id}")
+async def get_kata_video(video_id: str):
+    video = fs_katas.get(ObjectId(video_id))
+    return StreamingResponse(BytesIO(video.read()), media_type="video/mp4")
+
+
+# Eliminar una kata por su ID
+@app.delete("/katas/{kata_id}")
+async def delete_kata(kata_id: str):
+    kata = katas.find_one({"_id": ObjectId(kata_id)})
+
+    if kata is None:
+        raise HTTPException(status_code=404, detail="Kata no encontrada")
+
+    # Eliminar el video de GridFS
+    fs_katas.delete(ObjectId(kata["id_video"]))
+
+    # Eliminar la kata de la colección
+    katas.delete_one({"_id": ObjectId(kata_id)})
+
+    return {"detail": "Kata eliminada correctamente"}
+
+
+# TODO TECNICAS
+
+fs_tecnicas = gridfs.GridFS(tecnicas_katasdb)
+
+
+# Crear una nueva técnica con imágenes
+@app.post("/tecnicas/", response_model=TecnicaResponse)
+async def create_tecnica(nombre: str, imagenes: List[UploadFile] = File(...)):
+    # Almacenar las imágenes en GridFS
+    id_imagenes = []
+    for imagen in imagenes:
+        image_id = fs_tecnicas.put(imagen.file, filename=imagen.filename)
+        id_imagenes.append(str(image_id))
+
+    # Crear un nuevo documento en la colección `tecnicas`
+    tecnica_data = {"nombre": nombre, "id_imagen": id_imagenes}
+    tecnica_id = tecnicas.insert_one(tecnica_data).inserted_id
+
+    return TecnicaResponse(id=str(tecnica_id), nombre=nombre, id_imagen=id_imagenes)
+
+
+# Obtener una técnica por su ID
+@app.get("/tecnicas/{tecnica_id}", response_model=TecnicaResponse)
+async def get_tecnica(tecnica_id: str):
+    tecnica = tecnicas.find_one({"_id": ObjectId(tecnica_id)})
+
+    if tecnica is None:
+        raise HTTPException(status_code=404, detail="Técnica no encontrada")
+
+    return TecnicaResponse(id=str(tecnica["_id"]), nombre=tecnica["nombre"], id_imagen=tecnica["id_imagen"])
+
+
+# Descargar una imagen por su ID
+@app.get("/tecnicas/imagens/{image_id}")
+async def get_tecnica_image(image_id: str):
+    image = fs_tecnicas.get(ObjectId(image_id))
+    return StreamingResponse(BytesIO(image.read()), media_type="image/jpeg")
+
+
+# Eliminar una técnica por su ID
+@app.delete("/tecnicas/{tecnica_id}")
+async def delete_tecnica(tecnica_id: str):
+    tecnica = tecnicas.find_one({"_id": ObjectId(tecnica_id)})
+
+    if tecnica is None:
+        raise HTTPException(status_code=404, detail="Técnica no encontrada")
+
+    # Eliminar las imágenes de GridFS
+    for image_id in tecnica["id_imagen"]:
+        fs_tecnicas.delete(ObjectId(image_id))
+
+    # Eliminar la técnica de la colección
+    tecnicas.delete_one({"_id": ObjectId(tecnica_id)})
+
+    return {"detail": "Técnica eliminada correctamente"}

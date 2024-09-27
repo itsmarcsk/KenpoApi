@@ -16,7 +16,7 @@ katas = tecnicas_katasdb["katas"]
 
 eventos = eventosdb["eventos"]
 
-tienda_material = tienda_materialdb["tienda_material"]
+material_collection = tienda_materialdb["tienda_material"]
 cesta = tienda_materialdb["cesta"]
 
 # TODO metodo de prueba para ver si se conecta print(myclient.list_database_names())
