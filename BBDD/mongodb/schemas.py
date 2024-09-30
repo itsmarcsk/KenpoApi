@@ -22,7 +22,7 @@ class DiccionarioInsertar(BaseModel):
 
 class CestaItem(BaseModel):
     artista_marcial_id: int
-    material_id: List[int]  # Lista de IDs de materiales
+    material_id: List[str]  # Lista de IDs de materiales
 
 
 class MaterialItem(BaseModel):
@@ -71,6 +71,7 @@ class KataCreate(BaseModel):
 
 
 class KataInDB(KataCreate):
+    id: str
     id_video: str  # ID del video en GridFS
 
     class Config:
