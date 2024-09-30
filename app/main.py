@@ -12,7 +12,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from starlette.responses import JSONResponse
 
-from BBDD.mongodb.database import chats, tienda_materialdb, material_collection, cesta, myclient, eventos, \
+from BBDD.mongodb.database import chats, tienda_materialdb, material_collection, cesta, eventos, \
     tecnicas_katasdb, katas, tecnicas, eventosdb, fs_imagenes
 from BBDD.mongodb.schemas import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem, EventoInDB, EventoCreate, \
     MaterialInDB, MaterialCreate, KataInDB, TecnicaResponse
@@ -55,12 +55,6 @@ def get_db():
 #
 
 # TODO ARTISTAS MARCIALES
-@app.get("/artistas")
-def read_artistas(db: Session = Depends(get_db)):
-    # Obtener: Consulta para obtener todos los artistas marciales
-    return {"artistas": "Aquí irían los datos de los artistas"}
-
-
 @app.get("/artistas-marciales/{dni}", response_model=schemas.ArtistaMarcialInDB)
 def read_artista_marcial(dni: str, db: Session = Depends(get_db)):
     # Obtener: Llamada al método CRUD para obtener el artista por DNI
