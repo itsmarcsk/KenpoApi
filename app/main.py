@@ -175,6 +175,7 @@ def delete_competicion(competicion_id: int, db: Session = Depends(get_db)):
     return crud.delete_competicion_by_id(db, competicion_id)
 
 
+# TODO RESULTADOS
 @app.post("/resultados/", response_model=schemas.ResultadosInDB)
 def create_resultado(resultado: schemas.ResultadosCreate, db: Session = Depends(get_db)):
     return crud.create_resultado(db, resultado)
@@ -842,6 +843,7 @@ async def eliminar_tecnica(tecnica_id: str):
 def get_katas_collection():
     return katas
 
+
 # TODO FUNCIONA
 @app.get("/katas/")
 async def get_katas():
@@ -851,6 +853,7 @@ async def get_katas():
         return JSONResponse(content={"katas": katas})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener katas: {str(e)}")
+
 
 # TODO FUNCIONA
 @app.post("/katas/")
@@ -884,6 +887,7 @@ async def create_kata(
 
     return JSONResponse(content={"message": "Kata creada con éxito", "kata": kata})
 
+
 # TODO FUNCIONA
 @app.get("/katas/{kata_id}", response_model=KataInDB)
 async def get_kata(kata_id: str):
@@ -903,6 +907,7 @@ async def get_kata(kata_id: str):
         nombre=kata["nombre"],
         id_video=kata["id_video"]
     )
+
 
 # TODO FUNCIONA
 @app.delete("/katas/{kata_id}")
