@@ -1,3 +1,4 @@
+import gridfs
 import pymongo
 
 # myclient = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -8,6 +9,9 @@ chatdb = myclient["chats"]
 tecnicas_katasdb = myclient["tecnicas_katasdb"]
 eventosdb = myclient["eventosdb"]
 tienda_materialdb = myclient["tienda_materialdb"]
+
+imagenes = myclient["imagenes"]
+fs_imagenes = gridfs.GridFSBucket(imagenes)
 
 # TODO colecciones
 chats = chatdb["chats"]

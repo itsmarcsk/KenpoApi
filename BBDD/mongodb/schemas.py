@@ -14,6 +14,7 @@ class Mensaje(BaseModel):
 
 # Modelo de datos para el diccionario que se va a insertar
 class DiccionarioInsertar(BaseModel):
+    _id: str
     maestro_id: int
     aprendiz_id: int
     mensajes: List[Mensaje]
@@ -31,7 +32,7 @@ class MaterialItem(BaseModel):
 class EventoBase(BaseModel):
     titulo: str
     descripcion: str
-    fecha: date
+    fecha: str
     lugar: str
 
 
