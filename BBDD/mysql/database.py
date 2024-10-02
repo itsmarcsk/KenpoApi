@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # SQLALCHEMY_DATABASE_URL = "mysql+mysqldb://root:root@localhost:3307/tfc"
-SQLALCHEMY_DATABASE_URL = "mysql+mysqldb://root:root@172.18.0.4:3306/tfc"
+SQLALCHEMY_DATABASE_URL = "mysql+mysqldb://root:root@172.18.0.3:3306/tfc"
 
 
 # Crea el motor de la base de datos

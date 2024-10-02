@@ -80,7 +80,7 @@ class KataInDB(KataCreate):
 
 class TecnicaCreate(BaseModel):
     nombre: str  # Nombre de la técnica, requerido
-    id_imagen: List[str]  # Lista de IDs de imágenes
+    id_imagen: str  # Lista de IDs de imágenes
 
 
 class TecnicaInDB(TecnicaCreate):
@@ -90,7 +90,7 @@ class TecnicaInDB(TecnicaCreate):
 class TecnicaResponse(BaseModel):
     id: str
     nombre: str
-    id_imagen: List[str]
+    id_imagen: str
 
     class Config:
         from_attributes = True
