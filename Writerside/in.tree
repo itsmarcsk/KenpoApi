@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="in"
+                 name="Instance Name"
+                 start-page="Presentacion-proyecto.md">
+
+    <toc-element topic="Presentacion-proyecto.md"/>
+    <toc-element topic="Librerías-dependencia-API.md"/>
+    <toc-element topic="Uso-API.md"/>
+    <toc-element topic="Estructura-base-de-datos.md"/>
+</instance-profile>
