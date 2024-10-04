@@ -51,7 +51,7 @@ def create_artista_marcial(db: Session, artista: ArtistaMarcialCreate):
         escuela_id=artista.escuela_id,
         cinturon=artista.cinturon,
         grado=artista.grado,
-        contrasena=hashed_password
+        contrasena=""
     )
 
     db.add(db_artista)
