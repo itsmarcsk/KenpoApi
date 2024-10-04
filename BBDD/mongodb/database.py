@@ -1,8 +1,8 @@
 import gridfs
 import pymongo
 
-myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-# myclient = pymongo.MongoClient("mongodb://172.18.0.2:27017/")
+# myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+myclient = pymongo.MongoClient("mongodb://172.18.0.2:27017/")
 
 # TODO bases de datos
 chatdb = myclient["chats"]

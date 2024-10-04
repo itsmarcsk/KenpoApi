@@ -3,27 +3,28 @@ from io import BytesIO
 from typing import List
 
 import gridfs
+import pymongo
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, HTMLResponse
 
-from app.BBDD.mongodb.database import chats, tienda_materialdb, material_collection, cesta, eventos, \
+from BBDD.mongodb.database import chats, tienda_materialdb, material_collection, cesta, eventos, \
     tecnicas_katasdb, katas, tecnicas, eventosdb, fs_imagenes, fs_videos
-from app.BBDD.mongodb.schemas import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem, EventoInDB, MaterialInDB, \
-    KataInDB, TecnicaResponse
-from app.BBDD.mysql import schemas, crud
+from BBDD.mongodb.schemas import DiccionarioInsertar, Mensaje, CestaItem, MaterialItem, EventoInDB, EventoCreate, \
+    MaterialInDB, MaterialCreate, KataInDB, TecnicaResponse, TecnicaInDB
+from BBDD.mysql import schemas, crud
 
-from app.BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
+from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
     get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_escuela_by_id, \
     update_password_by_dni
-from app.BBDD.mysql.database import SessionLocal, engine, Base
-from app.BBDD.mysql.models import ArtistaMarcial
-from app.BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate, EscuelaInDB, EscuelaCreate
-from app.tools.PasswordEncryptor import PasswordEncryptor
+from BBDD.mysql.database import SessionLocal, engine, Base
+from BBDD.mysql.models import ArtistaMarcial
+from BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate, EscuelaInDB, EscuelaCreate
+from tools.PasswordEncryptor import PasswordEncryptor
 
 # ResultadoCompeticionResponse
 
