@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from BBDD.mysql.schemas import ArtistaMarcialCreate, EscuelaCreate, CompeticionCreate
-from tools.PasswordEncryptor import PasswordEncryptor
+from app.BBDD.mysql.schemas import ArtistaMarcialCreate, EscuelaCreate, CompeticionCreate
+from app.tools.PasswordEncryptor import PasswordEncryptor
 from . import models, schemas
 from .models import ArtistaMarcial, Escuela, Competicion
 

@@ -1,7 +1,7 @@
 from sqlalchemy import Date
 from sqlalchemy import Column, Integer, String
 
-from BBDD.mysql.database import Base
+from app.BBDD.mysql.database import Base
 
 
 class ArtistaMarcial(Base):
