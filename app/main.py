@@ -10,6 +10,7 @@ from fastapi import Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse, HTMLResponse
 
 from BBDD.mongodb.database import chats, tienda_materialdb, material_collection, cesta, eventos, \
@@ -30,6 +31,14 @@ from tools.PasswordEncryptor import PasswordEncryptor
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    # allow_origins=["http://localhost:4200"],  # Permite el acceso desde el puerto donde corre tu Angular
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Crear las tablas automáticamente
 Base.metadata.create_all(bind=engine)
 
