@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="ac2b76a1-976f-491d-93ba-fb2298d8d96e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BBDD/mysql/crud.py" beforeDir="false" afterPath="$PROJECT_DIR$/BBDD/mysql/crud.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -91,7 +92,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-e1496dc324bf-90496b972cec-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-243.19420.35" />
+        <option value="bundled-python-sdk-4ce43fa16dc8-aa17d162503b-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-243.21565.33" />
       </set>
     </attachedChunks>
   </component>

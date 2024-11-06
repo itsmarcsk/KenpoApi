@@ -19,7 +19,7 @@ from BBDD.mongodb.schemas import DiccionarioInsertar, Mensaje, CestaItem, Materi
     MaterialInDB, MaterialCreate, KataInDB, TecnicaResponse, TecnicaInDB
 from BBDD.mysql import schemas, crud
 
-from BBDD.mysql.crud import get_artista_marcial_by_dni, artista_marcial_exists, create_artista_marcial, \
+from BBDD.mysql.crud import get_artista_marcial_by_dni, create_artista_marcial, \
     get_all_escuelas, get_escuela_by_id, create_escuela, delete_artista_marcial_by_dni, delete_escuela_by_id, \
     update_password_by_dni
 from BBDD.mysql.database import SessionLocal, engine, Base
@@ -90,10 +90,7 @@ async def comprobar_contrasena(dni: str, contrasena: str, db: Session = Depends(
     return {"message": "Contraseña correcta"}
 
 
-@app.get("/artistas-marciales/existe/{dni}", response_model=bool)
-def check_artista_marcial_exists(dni: str, db: Session = Depends(get_db)):
-    # Verificar: Llamada al método CRUD para verificar si el artista marcial existe por DNI
-    return artista_marcial_exists(db, dni)
+
 
 
 @app.post("/artistas-marciales/", response_model=ArtistaMarcialInDB)

@@ -31,11 +31,6 @@ def get_artista_marcial_by_dni(db: Session, dni: str):
     }
 
 
-def artista_marcial_exists(db: Session, dni: str) -> bool:
-    """Verifica si un artista marcial existe por su DNI."""
-    return db.query(ArtistaMarcial).filter(ArtistaMarcial.dni == dni).first() is not None
-
-
 def create_artista_marcial(db: Session, artista: ArtistaMarcialCreate):
     """Crea un nuevo artista marcial."""
     hashed_password = PasswordEncryptor.hash_password(artista.contrasena)
@@ -179,8 +174,7 @@ def delete_competicion_by_id(db: Session, competicion_id: int):
     return {"detail": "Competición eliminada exitosamente"}
 
 
-
-#TODO RESULTADOS
+# TODO RESULTADOS
 def create_resultado(db: Session, resultado: schemas.ResultadosCreate):
     db_resultado = models.Resultados(
         artista_id=resultado.artista_id,
@@ -200,6 +194,7 @@ def delete_resultado(db: Session, resultado_id: int):
     db.delete(db_resultado)
     db.commit()
     return {"detail": "Resultado eliminado exitosamente"}
+
 
 def get_all_resultados(db: Session):
     return db.query(models.Resultados).all()
