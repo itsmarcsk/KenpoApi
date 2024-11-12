@@ -112,11 +112,13 @@ def delete_artista_marcial_dni(dni: str, db: Session = Depends(get_db)):
     return delete_artista_marcial_by_dni(db, dni)
 
 
-@app.put("/artistas-marciales/{dni}/contrasena")
+@app.put("/artistas-marciales/update-password")
 def update_artista_contrasena(dni: str, new_password: str, db: Session = Depends(get_db)):
-    # Actualizar: Actualizar la contraseña de un artista marcial por su DNI
+    # Intentar actualizar la contraseña con la nueva
     artista_actualizado = update_password_by_dni(db, dni, PasswordEncryptor.hash_password(new_password))
-    return {"message": "Contraseña actualizada correctamente", "artista": artista_actualizado}
+
+    # Retornar `true` si la actualización fue exitosa, `false` en caso contrario
+    return artista_actualizado is not None
 
 
 # TODO ESCUELAS
