@@ -13,7 +13,6 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./BBDD/mongodb /code/BBDD/mongodb
 COPY ./BBDD/mysql /code/BBDD/mysql
-COPY ./tools /code/tools
 COPY ./app /code/app
 
 

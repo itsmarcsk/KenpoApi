@@ -25,7 +25,7 @@ from BBDD.mysql.crud import get_artista_marcial_by_dni, create_artista_marcial, 
 from BBDD.mysql.database import SessionLocal, engine, Base
 from BBDD.mysql.models import ArtistaMarcial
 from BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate, EscuelaInDB, EscuelaCreate
-from tools.PasswordEncryptor import PasswordEncryptor
+
 
 # ResultadoCompeticionResponse
 
@@ -76,21 +76,23 @@ def read_artista_marcial(dni: str, db: Session = Depends(get_db)):
 
 
 @app.get("/artistas-marciales/{dni}/{contrasena}")
-async def comprobar_contrasena(dni: str, contrasena: str, db: Session = Depends(get_db)):
+async def comprobar_contrasena(dni: str, contrasena: str, db: Session = Depends(get_db)) -> bool:
     # Buscar el artista marcial por su DNI
     artista = db.query(ArtistaMarcial).filter(ArtistaMarcial.dni == dni).first()
 
-    if artista is None:
-        raise HTTPException(status_code=404, detail="Artista marcial no encontrado")
+    # Verificar si el artista existe
+    if not artista:
+        # Aquí podemos agregar un mensaje para ayudar con la depuración
+        print(f"Artista no encontrado con DNI: {dni}")
+        return False
 
-    # Comprobar si la contraseña es correcta
-    if not PasswordEncryptor.check_password(contrasena, artista.contrasena):
-        raise HTTPException(status_code=403, detail="Contraseña incorrecta")
+    # Verificar si la contraseña es correcta
+    if contrasena == artista.contrasena:
+        return True
 
-    return {"message": "Contraseña correcta"}
-
-
-
+    # Si la contraseña no es correcta
+    print(f"Contraseña incorrecta para el DNI: {dni}")
+    return False
 
 
 @app.post("/artistas-marciales/", response_model=ArtistaMarcialInDB)
@@ -115,7 +117,7 @@ def delete_artista_marcial_dni(dni: str, db: Session = Depends(get_db)):
 @app.put("/artistas-marciales/update-password")
 def update_artista_contrasena(dni: str, new_password: str, db: Session = Depends(get_db)):
     # Intentar actualizar la contraseña con la nueva
-    artista_actualizado = update_password_by_dni(db, dni, PasswordEncryptor.hash_password(new_password))
+    artista_actualizado = update_password_by_dni(db, dni, new_password)
 
     # Retornar `true` si la actualización fue exitosa, `false` en caso contrario
     return artista_actualizado is not None

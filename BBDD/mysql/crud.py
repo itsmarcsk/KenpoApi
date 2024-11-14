@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from BBDD.mysql.schemas import ArtistaMarcialCreate, EscuelaCreate, CompeticionCreate
-from tools.PasswordEncryptor import PasswordEncryptor
+
 from . import models, schemas
 from .models import ArtistaMarcial, Escuela, Competicion
 
@@ -33,7 +33,7 @@ def get_artista_marcial_by_dni(db: Session, dni: str):
 
 def create_artista_marcial(db: Session, artista: ArtistaMarcialCreate):
     """Crea un nuevo artista marcial."""
-    hashed_password = PasswordEncryptor.hash_password(artista.contrasena)
+
 
     db_artista = ArtistaMarcial(
         dni=artista.dni,
@@ -86,9 +86,7 @@ def update_password_by_dni(db: Session, dni: str, new_password: str):
 
     if not artista:
         raise HTTPException(status_code=404, detail="Artista marcial no encontrado")
-
-    hashed_password = PasswordEncryptor.hash_password(new_password)
-    artista.contrasena = hashed_password
+    artista.contrasena = new_password
 
     db.commit()
     db.refresh(artista)
