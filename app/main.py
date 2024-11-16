@@ -700,11 +700,17 @@ def add_material_to_cesta(artista_marcial_id: int, material_item: str):
             })
 
         # Actualizar la cesta en la base de datos
-        cesta.replace_one({"artista_marcial_id": artista_marcial_id}, cesta_item, upsert=True)
+        result = cesta.replace_one({"artista_marcial_id": artista_marcial_id}, cesta_item, upsert=True)
 
-        return {"message": "Material añadido correctamente al artista marcial"}
+        # Si el número de documentos modificados es mayor que 0 o si se hizo un upsert, retornamos True
+        if result.modified_count > 0 or result.upserted_id:
+            return True
+        else:
+            return False
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al añadir el material: {e}")
+
 
 
 # TODO FUNCIONA
