@@ -26,7 +26,7 @@ class CestaItem(BaseModel):
 
 
 class MaterialItem(BaseModel):
-    material_id: int  # El nuevo material que se va a añadir
+    material_id: str  # El nuevo material que se va a añadir
 
 
 class EventoBase(BaseModel):
