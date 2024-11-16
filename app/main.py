@@ -26,7 +26,6 @@ from BBDD.mysql.database import SessionLocal, engine, Base
 from BBDD.mysql.models import ArtistaMarcial
 from BBDD.mysql.schemas import ArtistaMarcialInDB, ArtistaMarcialCreate, EscuelaInDB, EscuelaCreate
 
-
 # ResultadoCompeticionResponse
 
 app = FastAPI()
@@ -651,8 +650,12 @@ def get_material_by_artista_marcial(artista_marcial_id: int):
     if resultado is None:
         raise HTTPException(status_code=404, detail="Artista marcial no encontrado en la cesta")
 
-    # Retorna la lista de material_id si se encuentra
-    return {"artista_marcial_id": artista_marcial_id, "material_id": resultado.get("material_id", [])}
+    # Retorna la lista de materiales con material_id y cantidad si se encuentra
+    materiales = resultado.get("materiales", [])
+    return {
+        "artista_marcial_id": artista_marcial_id,
+        "materiales": materiales
+    }
 
 
 # TODO FUNCIONA Endpoint para añadir un nuevo item a la cesta
@@ -669,16 +672,35 @@ def add_to_cesta(item: CestaItem):
 
 # TODO FUNCIONA
 @app.put("/cesta/{artista_marcial_id}/add-material")
-def add_material_to_cesta(artista_marcial_id: int, material_item: MaterialItem):
+def add_material_to_cesta(artista_marcial_id: int, material_item: str):
     try:
-        # Buscar el documento con el artista_marcial_id
-        result = cesta.update_one(
-            {"artista_marcial_id": artista_marcial_id},  # Filtro para encontrar el documento
-            {"$addToSet": {"material_id": material_item.material_id}}  # Añadir material_id sin duplicados
-        )
+        # Buscar el documento de la cesta del artista marcial
+        cesta_item = cesta.find_one({"artista_marcial_id": artista_marcial_id})
 
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Artista marcial no encontrado en la cesta")
+        # Si no existe el documento para ese artista, crearlo
+        if not cesta_item:
+            cesta_item = {
+                "artista_marcial_id": artista_marcial_id,
+                "materiales": []
+            }
+
+        # Buscar si el material ya está en la lista de materiales
+        material_found = False
+        for item in cesta_item["materiales"]:
+            if item["material_id"] == material_item:
+                item["cantidad"] += 1  # Si el material ya está, incrementar la cantidad
+                material_found = True
+                break
+
+        # Si el material no está, añadirlo con cantidad 1
+        if not material_found:
+            cesta_item["materiales"].append({
+                "material_id": material_item,
+                "cantidad": 1
+            })
+
+        # Actualizar la cesta en la base de datos
+        cesta.replace_one({"artista_marcial_id": artista_marcial_id}, cesta_item, upsert=True)
 
         return {"message": "Material añadido correctamente al artista marcial"}
     except Exception as e:
@@ -715,7 +737,7 @@ def delete_material_list_by_artista_marcial(artista_marcial_id: int):
 
 # TODO FUNCIONA
 @app.delete("/cesta/material/{artista_marcial_id}/{material_id}")
-def delete_material_from_list(artista_marcial_id: int, material_id: int):
+def delete_material_from_list(artista_marcial_id: int, material_id: str):
     # Eliminar un material_id específico de la lista para un artista_marcial_id dado
     resultado = cesta.update_one(
         {"artista_marcial_id": artista_marcial_id},  # Filtro para encontrar el documento

@@ -20,13 +20,16 @@ class DiccionarioInsertar(BaseModel):
     mensajes: List[Mensaje]
 
 
-class CestaItem(BaseModel):
-    artista_marcial_id: int
-    material_id: List[str]  # Lista de IDs de materiales
-
-
+# Definir el modelo para un ítem de material con cantidad
 class MaterialItem(BaseModel):
-    material_id: str  # El nuevo material que se va a añadir
+    material_id: str  # ID del material
+    cantidad: int  # Cantidad del material
+
+
+# Definir el modelo de CestaItem, que ahora tiene una lista de MaterialItems
+class CestaItem(BaseModel):
+    artista_marcial_id: int  # ID del artista marcial
+    materiales: List[MaterialItem]  # Lista de materiales con ID y cantidad
 
 
 class EventoBase(BaseModel):
