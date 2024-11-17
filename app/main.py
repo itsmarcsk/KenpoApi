@@ -542,7 +542,7 @@ async def create_material(
         "nombre": nombre,
         "descripcion": descripcion,
         "precio": precio,
-        "id_imagen": str(file_id)  # Convertir ObjectId a cadena
+        "id_imagen": str(file_id)  # Convertir ObjectId a cadenav
     }
 
     # Insertar el material en la base de datos
@@ -672,7 +672,7 @@ def add_to_cesta(item: CestaItem):
 
 # TODO FUNCIONA
 @app.put("/cesta/{artista_marcial_id}/add-material")
-def add_material_to_cesta(artista_marcial_id: int, material_item: str):
+def add_material_to_cesta(artista_marcial_id: str, material_item: str):
     try:
         # Buscar el documento de la cesta del artista marcial
         cesta_item = cesta.find_one({"artista_marcial_id": artista_marcial_id})
@@ -710,7 +710,6 @@ def add_material_to_cesta(artista_marcial_id: int, material_item: str):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al añadir el material: {e}")
-
 
 
 # TODO FUNCIONA

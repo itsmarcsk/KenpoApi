@@ -28,7 +28,7 @@ class MaterialItem(BaseModel):
 
 # Definir el modelo de CestaItem, que ahora tiene una lista de MaterialItems
 class CestaItem(BaseModel):
-    artista_marcial_id: int  # ID del artista marcial
+    artista_marcial_id: str  # ID del artista marcial
     materiales: List[MaterialItem]  # Lista de materiales con ID y cantidad
 
 
