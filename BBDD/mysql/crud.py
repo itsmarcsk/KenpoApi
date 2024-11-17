@@ -34,7 +34,6 @@ def get_artista_marcial_by_dni(db: Session, dni: str):
 def create_artista_marcial(db: Session, artista: ArtistaMarcialCreate):
     """Crea un nuevo artista marcial."""
 
-
     db_artista = ArtistaMarcial(
         dni=artista.dni,
         nombre=artista.nombre,
@@ -174,15 +173,21 @@ def delete_competicion_by_id(db: Session, competicion_id: int):
 
 # TODO RESULTADOS
 def create_resultado(db: Session, resultado: schemas.ResultadosCreate):
-    db_resultado = models.Resultados(
-        artista_id=resultado.artista_id,
-        competicion_id=resultado.competicion_id,
-        puesto=resultado.puesto
-    )
-    db.add(db_resultado)
-    db.commit()
-    db.refresh(db_resultado)
-    return db_resultado
+    """
+    Crea un nuevo resultado en la base de datos y lo retorna.
+    """
+    try:
+        db_resultado = models.Resultados(
+            artista_id=resultado.artista_id,
+            competicion_id=resultado.competicion_id,
+            puesto=resultado.puesto
+        )
+        db.add(db_resultado)  # Añadir a la sesión
+        db.commit()  # Confirmar los cambios
+        db.refresh(db_resultado)  # Refrescar para obtener el ID generado
+        return db_resultado
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al crear el resultado: {e}")
 
 
 def delete_resultado(db: Session, resultado_id: int):

@@ -44,6 +44,6 @@ class Resultados(Base):
     __tablename__ = 'resultados'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    artista_id = Column(Integer, nullable=False)  # Clave que ya no es foránea
+    artista_id = Column(String(255), nullable=False)  # Clave que ya no es foránea
     competicion_id = Column(Integer, nullable=False)  # Clave que ya no es foránea
     puesto = Column(Integer, nullable=False)  # Campo requerido

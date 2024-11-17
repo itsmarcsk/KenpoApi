@@ -204,7 +204,7 @@ def get_all_resultados(db: Session = Depends(get_db)):
 
 
 @app.get("/resultados/artista/{artista_id}", response_model=List[schemas.ResultadosInDB])
-def get_resultados_by_artista(artista_id: int, db: Session = Depends(get_db)):
+def get_resultados_by_artista(artista_id: str, db: Session = Depends(get_db)):
     resultados = crud.get_resultados_by_artista(db, artista_id)
     if not resultados:
         raise HTTPException(status_code=404, detail="No se encontraron resultados para este artista")
@@ -643,7 +643,7 @@ def get_all_cesta_items():
 
 # TODO FUNCIONA
 @app.get("/cesta/{artista_marcial_id}")
-def get_material_by_artista_marcial(artista_marcial_id: int):
+def get_material_by_artista_marcial(artista_marcial_id: str):
     # Busca el documento que coincide con el artista_marcial_id
     resultado = cesta.find_one({"artista_marcial_id": artista_marcial_id})
 
@@ -714,7 +714,7 @@ def add_material_to_cesta(artista_marcial_id: str, material_item: str):
 
 # TODO FUNCIONA
 @app.delete("/cesta/{artista_marcial_id}")
-def delete_material_by_artista_marcial(artista_marcial_id: int):
+def delete_material_by_artista_marcial(artista_marcial_id: str):
     # Elimina todos los documentos que coinciden con el artista_marcial_id
     resultado = cesta.delete_many({"artista_marcial_id": artista_marcial_id})
 
@@ -725,28 +725,28 @@ def delete_material_by_artista_marcial(artista_marcial_id: int):
         "message": f"Se eliminaron {resultado.deleted_count} registros para el artista_marcial_id {artista_marcial_id}"}
 
 
-# TODO FUNCIONA
+# TODO FUNCIONA BORRA TDOOS LOS MATERIALES DE LA LISTA
 @app.delete("/cesta/material/{artista_marcial_id}")
-def delete_material_list_by_artista_marcial(artista_marcial_id: int):
-    # Elimina la lista de material_id para el artista_marcial_id dado
+def delete_material_list_by_artista_marcial(artista_marcial_id: str):
+    # Elimina la lista completa de materiales para el artista_marcial_id dado
     resultado = cesta.update_one(
         {"artista_marcial_id": artista_marcial_id},  # Filtro para encontrar el documento
-        {"$unset": {"material_id": ""}}  # Operador $unset para eliminar el campo material_id
+        {"$set": {"materiales": []}}  # Establecer la lista de materiales como vacía
     )
 
     if resultado.matched_count == 0:
         raise HTTPException(status_code=404, detail="No se encontró ningún registro para el artista marcial")
 
-    return {"message": f"Se eliminó la lista de material_id para el artista_marcial_id {artista_marcial_id}"}
+    return {"message": f"Se eliminó la lista de materiales para el artista_marcial_id {artista_marcial_id}"}
 
 
-# TODO FUNCIONA
+# TODO FUNCIONA ELIMINAR ELEMENTO MATERIAL DE LA LISTA
 @app.delete("/cesta/material/{artista_marcial_id}/{material_id}")
-def delete_material_from_list(artista_marcial_id: int, material_id: str):
-    # Eliminar un material_id específico de la lista para un artista_marcial_id dado
+def delete_material_from_list(artista_marcial_id: str, material_id: str):
+    # Eliminar un material_id específico de la lista de materiales para un artista_marcial_id dado
     resultado = cesta.update_one(
         {"artista_marcial_id": artista_marcial_id},  # Filtro para encontrar el documento
-        {"$pull": {"material_id": material_id}}  # Operador $pull para eliminar el elemento de la lista
+        {"$pull": {"materiales": {"material_id": material_id}}}  # Eliminar el material por material_id
     )
 
     if resultado.matched_count == 0:
@@ -756,7 +756,34 @@ def delete_material_from_list(artista_marcial_id: int, material_id: str):
         raise HTTPException(status_code=400, detail=f"No se encontró el material_id {material_id} en la lista")
 
     return {
-        "message": f"El material_id {material_id} fue eliminado de la lista para el artista_marcial_id {artista_marcial_id}"}
+        "message": f"El material_id {material_id} fue eliminado de la lista para el artista_marcial_id {artista_marcial_id}"
+    }
+
+
+@app.delete("/cesta/material/cantidad/{artista_marcial_id}/{material_id}")
+def delete_material_from_list(artista_marcial_id: str, material_id: str):
+    # Encontrar el documento del artista marcial
+    cesta_item = cesta.find_one({"artista_marcial_id": artista_marcial_id})
+
+    if not cesta_item:
+        raise HTTPException(status_code=404, detail="No se encontró ningún registro para el artista marcial")
+
+    # Buscar el material en la lista
+    for material in cesta_item["materiales"]:
+        if material["material_id"] == material_id:
+            # Reducir cantidad si es mayor que 1
+            if material["cantidad"] > 1:
+                material["cantidad"] -= 1
+            else:
+                # Eliminar el material completamente si la cantidad es 1
+                cesta_item["materiales"].remove(material)
+
+            # Actualizar la base de datos con la nueva lista de materiales
+            cesta.replace_one({"artista_marcial_id": artista_marcial_id}, cesta_item)
+            return {"message": f"Material {material_id} actualizado o eliminado correctamente"}
+
+    # Si el material no existe en la lista
+    raise HTTPException(status_code=400, detail=f"No se encontró el material_id {material_id} en la lista")
 
 
 # TODO TECNICAS
