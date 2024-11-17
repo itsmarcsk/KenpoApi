@@ -7,6 +7,7 @@ import pymongo
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Depends, UploadFile, File, Form
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -671,8 +672,12 @@ def add_to_cesta(item: CestaItem):
 
 
 # TODO FUNCIONA
+class MaterialItem(BaseModel):
+    material_item: str
+
+
 @app.put("/cesta/{artista_marcial_id}/add-material")
-def add_material_to_cesta(artista_marcial_id: str, material_item: str):
+def add_material_to_cesta(artista_marcial_id: str, material_item: MaterialItem):
     try:
         # Buscar el documento de la cesta del artista marcial
         cesta_item = cesta.find_one({"artista_marcial_id": artista_marcial_id})
@@ -687,7 +692,7 @@ def add_material_to_cesta(artista_marcial_id: str, material_item: str):
         # Buscar si el material ya está en la lista de materiales
         material_found = False
         for item in cesta_item["materiales"]:
-            if item["material_id"] == material_item:
+            if item["material_id"] == material_item.material_item:
                 item["cantidad"] += 1  # Si el material ya está, incrementar la cantidad
                 material_found = True
                 break
@@ -695,7 +700,7 @@ def add_material_to_cesta(artista_marcial_id: str, material_item: str):
         # Si el material no está, añadirlo con cantidad 1
         if not material_found:
             cesta_item["materiales"].append({
-                "material_id": material_item,
+                "material_id": material_item.material_item,
                 "cantidad": 1
             })
 
