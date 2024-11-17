@@ -68,7 +68,7 @@ class CompeticionInDB(CompeticionBase):
 
 # TODO  RESULTADO COMPETICIONES
 class ResultadosBase(BaseModel):
-    artista_id: int  # Requerido
+    artista_id: str  # Requerido
     competicion_id: int  # Requerido
     puesto: int  # Requerido
 
