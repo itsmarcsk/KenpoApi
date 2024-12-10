@@ -1040,24 +1040,27 @@ async def get_imagen(imagen_id: str):
 
 @app.get("/videos/{video_id}")
 async def get_video(video_id: str):
+    # Verificar si el video_id es un ObjectId válido
     if not ObjectId.is_valid(video_id):
         raise HTTPException(status_code=400, detail="ID de video inválido")
 
     try:
-        # Obtener el video de GridFS utilizando open_download_stream
+        # Intentar obtener el video desde GridFS
         video_data = fs_videos.open_download_stream(ObjectId(video_id))
 
-        # Crear un flujo de bytes a partir del video
-        video_stream = BytesIO(video_data.read())
+        # Crear un flujo de bytes desde el video
+        video_stream = video_data.read()
 
-        # Registrar información para depuración
-        print(
-            f"Video encontrado: {video_id}, tamaño: {video_data.length} bytes, tipo: {video_data.metadata['contentType']}")
-
-        return StreamingResponse(video_stream, media_type=video_data.metadata['contentType'])
+        # Devolver el video como una respuesta de streaming con el tipo MIME correcto
+        return StreamingResponse(
+            iter([video_stream]),
+            media_type=video_data.metadata["contentType"],
+            headers={"Content-Disposition": f"attachment; filename={video_data.filename}"}
+        )
 
     except gridfs.errors.NoFile:
+        # En caso de que no se encuentre el video
         raise HTTPException(status_code=404, detail="Video no encontrado")
     except Exception as e:
-        print(f"Error al obtener el video: {str(e)}")  # Registro de depuración
+        # Manejo de errores generales
         raise HTTPException(status_code=500, detail=f"Error al obtener el video: {str(e)}")
